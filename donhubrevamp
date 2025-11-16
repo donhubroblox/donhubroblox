@@ -19,9 +19,6 @@ local HttpService = game:GetService("HttpService")
 
 local LocalPlayer = Players.LocalPlayer
 
--- Notification Queue
-local NotificationQueue = {}
-
 -- Utility Functions
 local function tween(instance, properties, duration, style, direction)
     duration = duration or 0.3
@@ -56,32 +53,6 @@ local function ripple(button)
         task.wait(0.6)
         circle:Destroy()
     end)
-end
-
--- Create blur background effect
-local function createBlurPanel(parent, zindex)
-    local BlurPanel = Instance.new("Frame")
-    BlurPanel.Size = UDim2.new(1, 0, 1, 0)
-    BlurPanel.BackgroundColor3 = Color3.fromRGB(20, 20, 28)
-    BlurPanel.BackgroundTransparency = 0.4
-    BlurPanel.BorderSizePixel = 0
-    BlurPanel.ZIndex = zindex or 1
-    BlurPanel.Parent = parent
-    
-    -- Add subtle gradient
-    local Gradient = Instance.new("UIGradient")
-    Gradient.Color = ColorSequence.new{
-        ColorSequenceKeypoint.new(0, Color3.fromRGB(25, 25, 35)),
-        ColorSequenceKeypoint.new(1, Color3.fromRGB(15, 15, 25))
-    }
-    Gradient.Rotation = 135
-    Gradient.Transparency = NumberSequence.new{
-        NumberSequenceKeypoint.new(0, 0.3),
-        NumberSequenceKeypoint.new(1, 0.5)
-    }
-    Gradient.Parent = BlurPanel
-    
-    return BlurPanel
 end
 
 -- Main Library
@@ -171,7 +142,7 @@ function DonLib:CreateWindow(config)
     local HomeButton = Instance.new("TextButton")
     HomeButton.Size = UDim2.new(0, 50, 0, 50)
     HomeButton.Position = UDim2.new(0.5, -25, 0, 10)
-    HomeButton.BackgroundColor3 = Color3.fromRGB(88, 101, 242) -- Discord blurple
+    HomeButton.BackgroundColor3 = Color3.fromRGB(88, 101, 242)
     HomeButton.BorderSizePixel = 0
     HomeButton.Text = "🏠"
     HomeButton.TextSize = 24
@@ -347,7 +318,7 @@ function DonLib:CreateWindow(config)
         Window:Destroy()
     end)
     
-    -- Content Container (Discord-style cards)
+    -- Content Container
     local ContentContainer = Instance.new("Frame")
     ContentContainer.Size = UDim2.new(1, -90, 1, -95)
     ContentContainer.Position = UDim2.new(0, 80, 0, 85)
@@ -355,27 +326,6 @@ function DonLib:CreateWindow(config)
     ContentContainer.BorderSizePixel = 0
     ContentContainer.ZIndex = 2
     ContentContainer.Parent = MainContainer
-    
-    -- Tab Content (will be populated with cards)
-    local TabContent = Instance.new("ScrollingFrame")
-    TabContent.Size = UDim2.new(1, -10, 1, -10)
-    TabContent.Position = UDim2.new(0, 5, 0, 5)
-    TabContent.BackgroundTransparency = 1
-    TabContent.BorderSizePixel = 0
-    TabContent.ScrollBarThickness = 5
-    TabContent.ScrollBarImageColor3 = Color3.fromRGB(60, 60, 80)
-    TabContent.CanvasSize = UDim2.new(0, 0, 0, 0)
-    TabContent.ZIndex = 3
-    TabContent.Parent = ContentContainer
-    
-    local ContentLayout = Instance.new("UIListLayout")
-    ContentLayout.Padding = UDim.new(0, 15)
-    ContentLayout.SortOrder = Enum.SortOrder.LayoutOrder
-    ContentLayout.Parent = TabContent
-    
-    ContentLayout:GetPropertyChangedSignal("AbsoluteContentSize"):Connect(function()
-        TabContent.CanvasSize = UDim2.new(0, 0, 0, ContentLayout.AbsoluteContentSize.Y + 20)
-    end)
     
     -- Notification Container
     local NotificationContainer = Instance.new("Frame")
@@ -449,7 +399,6 @@ function DonLib:CreateWindow(config)
         NotifStroke.Thickness = 2
         NotifStroke.Parent = Notification
         
-        -- Accent bar on left
         local AccentBar = Instance.new("Frame")
         AccentBar.Size = UDim2.new(0, 4, 1, 0)
         AccentBar.BackgroundColor3 = config.Color or Color3.fromRGB(88, 101, 242)
@@ -497,10 +446,8 @@ function DonLib:CreateWindow(config)
         Message.ZIndex = 102
         Message.Parent = Notification
         
-        -- Animate in
         tween(Notification, {Size = UDim2.new(1, 0, 0, 70)}, 0.4, Enum.EasingStyle.Back)
         
-        -- Auto dismiss
         local duration = config.Duration or 5
         task.wait(duration)
         
@@ -518,7 +465,6 @@ function DonLib:CreateWindow(config)
             Window = Window
         }
         
-        -- Tab Icon Button (Discord-style)
         local TabIcon = Instance.new("TextButton")
         TabIcon.Size = UDim2.new(0, 50, 0, 50)
         TabIcon.BackgroundColor3 = Color3.fromRGB(30, 30, 40)
@@ -535,7 +481,6 @@ function DonLib:CreateWindow(config)
         TabIconCorner.CornerRadius = UDim.new(0, 25)
         TabIconCorner.Parent = TabIcon
         
-        -- Active indicator (hidden by default)
         local ActiveIndicator = Instance.new("Frame")
         ActiveIndicator.Size = UDim2.new(0, 0, 0, 50)
         ActiveIndicator.Position = UDim2.new(0, -10, 0, 0)
@@ -548,7 +493,6 @@ function DonLib:CreateWindow(config)
         IndicatorCorner.CornerRadius = UDim.new(1, 0)
         IndicatorCorner.Parent = ActiveIndicator
         
-        -- Tab Page
         local TabPage = Instance.new("ScrollingFrame")
         TabPage.Size = UDim2.new(1, -10, 1, -10)
         TabPage.Position = UDim2.new(0, 5, 0, 5)
@@ -570,7 +514,6 @@ function DonLib:CreateWindow(config)
             TabPage.CanvasSize = UDim2.new(0, 0, 0, PageLayout.AbsoluteContentSize.Y + 20)
         end)
         
-        -- Tab selection
         local function selectTab()
             for _, tab in pairs(Window.Tabs) do
                 tween(tab.Icon, {
@@ -619,8 +562,7 @@ function DonLib:CreateWindow(config)
             selectTab()
         end
         
-        -- CREATE CARD-BASED ELEMENTS (Discord-style)
-        
+        -- Element Creation Functions
         function Tab:CreateCard(config)
             config = config or {}
             
@@ -648,7 +590,6 @@ function DonLib:CreateWindow(config)
             CardPadding.PaddingRight = UDim.new(0, 15)
             CardPadding.Parent = Card
             
-            -- Card Title
             if config.Title then
                 local CardTitle = Instance.new("TextLabel")
                 CardTitle.Size = UDim2.new(1, 0, 0, 22)
@@ -678,9 +619,6 @@ function DonLib:CreateWindow(config)
             return Card, CardContent
         end
         
-        -- CONTINUATION OF Tab function from Part 1
--- Add these after the CreateCard function
-
         function Tab:CreateSection(name)
             local Section = Instance.new("TextLabel")
             Section.Size = UDim2.new(1, 0, 0, 35)
@@ -747,7 +685,6 @@ function DonLib:CreateWindow(config)
             ToggleFrame.ZIndex = 6
             ToggleFrame.Parent = CardContent
             
-            -- Icon on left
             local ToggleIcon = Instance.new("TextLabel")
             ToggleIcon.Size = UDim2.new(0, 40, 0, 40)
             ToggleIcon.Position = UDim2.new(0, 5, 0, 5)
@@ -790,7 +727,6 @@ function DonLib:CreateWindow(config)
             ToggleDesc.ZIndex = 7
             ToggleDesc.Parent = ToggleFrame
             
-            -- Toggle switch on right
             local ToggleOuter = Instance.new("Frame")
             ToggleOuter.Size = UDim2.new(0, 52, 0, 28)
             ToggleOuter.Position = UDim2.new(1, -57, 0, 11)
@@ -1018,7 +954,6 @@ function DonLib:CreateWindow(config)
                 end
             end)
             
-            -- Initialize
             local fillPercent = (currentValue - min) / (max - min)
             SliderFill.Size = UDim2.new(fillPercent, 0, 1, 0)
             
@@ -1248,7 +1183,6 @@ function DonLib:CreateWindow(config)
             }
         end
         
-        -- MULTI-SELECT DROPDOWN (Discord style with search)
         function Tab:CreateMultiDropdown(config)
             config = config or {}
             local options = config.Options or {}
@@ -1342,7 +1276,6 @@ function DonLib:CreateWindow(config)
             OListStroke.Thickness = 2
             OListStroke.Parent = OptionList
             
-            -- Search box
             local SearchBox = Instance.new("TextBox")
             SearchBox.Size = UDim2.new(1, -16, 0, 35)
             SearchBox.Position = UDim2.new(0, 8, 0, 8)
@@ -1420,7 +1353,6 @@ function DonLib:CreateWindow(config)
                 OBtnCorner.CornerRadius = UDim.new(0, 8)
                 OBtnCorner.Parent = OptionButton
                 
-                -- Checkbox
                 local CheckBox = Instance.new("Frame")
                 CheckBox.Size = UDim2.new(0, 20, 0, 20)
                 CheckBox.Position = UDim2.new(0, 10, 0.5, -10)
@@ -1504,7 +1436,6 @@ function DonLib:CreateWindow(config)
                 createOption(opt)
             end
             
-            -- Search functionality
             SearchBox:GetPropertyChangedSignal("Text"):Connect(function()
                 local searchText = SearchBox.Text:lower()
                 
@@ -1604,23 +1535,6 @@ function DonLib:CreateWindow(config)
                 end
             }
         end
-        
-        return Tab
-    end
-    
-    function Window:Destroy()
-        tween(MainContainer, {
-            Size = UDim2.new(0, 0, 0, 0),
-            Rotation = 5
-        }, 0.5, Enum.EasingStyle.Back, Enum.EasingDirection.In)
-        task.wait(0.5)
-        ScreenGui:Destroy()
-    end
-    
-    return Window
-end
-
-return DonLib
         
         return Tab
     end
